@@ -1,0 +1,27 @@
+name: Build sched-ext/scx
+
+on:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  build-scx-scheds:
+    name: Build sched-ext/scx
+    runs-on: ubuntu-latest
+    env:
+      LLVM_VERSION: 21
+      SCX_REVISION: main
+      SCX_BUILD_OUTPUT: ${{ github.workspace }}/scx-build-output
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run scx build in container
+        run: ${{ github.workspace }}/build-sched-ext/run.sh
+
+      - name: Upload scx build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: sched-ext-llvm-${{ env.LLVM_VERSION }}
+          if-no-files-found: error
+          path: ${{ env.SCX_BUILD_OUTPUT }}
