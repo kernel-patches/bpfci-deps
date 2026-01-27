@@ -2,16 +2,12 @@
 
 set -xeuo pipefail
 
-export LIBBPF_REVISION=${LIBBPF_REVISION:-master}
-export BPFTOOL_REVISION=${BPFTOOL_REVISION:-main}
+export LINUX_SRC=${LINUX_SRC:-/linux}
 
-# Assume Ubuntu/Debian
-export DEBIAN_FRONTEND=noninteractive
-sudo -E apt-get -y update
+sudo -E apt-get update -y
 
 # Install LLVM
-sudo -E apt-get --no-install-recommends -y install \
-        curl git gnupg lsb-release software-properties-common wget
+sudo -E apt-get --no-install-recommends -y install curl gnupg lsb-release wget
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 sudo -E ./llvm.sh ${LLVM_VERSION}
@@ -26,33 +22,26 @@ sudo update-alternatives --set llvm-strip /usr/bin/llvm-strip-${LLVM_VERSION}
 sudo update-alternatives --install \
     /usr/bin/llvm-ar llvm-ar /usr/bin/llvm-ar-${LLVM_VERSION} 10
 sudo update-alternatives --set llvm-ar /usr/bin/llvm-ar-${LLVM_VERSION}
+# sudo update-alternatives --install \
+#     /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${LLVM_VERSION} 10
+# sudo update-alternatives --set ld.lld /usr/bin/ld.lld-${LLVM_VERSION}
+# sudo update-alternatives --install \
+#     /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-${LLVM_VERSION} 10
+# sudo update-alternatives --set llvm-config /usr/bin/llvm-config-${LLVM_VERSION}
 
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-# Install libs and other deps
+# System dependencies of libbpf, bpftool and sched-ext
 sudo -E apt-get --no-install-recommends -y install \
     build-essential libssl-dev libelf-dev libzstd-dev libseccomp-dev \
     libbfd-dev libcap-dev jq pkg-config protobuf-compiler
 
-# Build and install libbpf
-export LIBBPF_ROOT=$(mktemp -d libbpf.XXXX)
-git clone https://github.com/libbpf/libbpf.git $LIBBPF_ROOT
-pushd $LIBBPF_ROOT
-git reset --hard $LIBBPF_REVISION
-make -C src -j$(nproc)
-make -C src install
-sudo ln -s /usr/lib64/pkgconfig/libbpf.pc /usr/lib/pkgconfig/libbpf.pc
-popd
-rm -rf $LIBBPF_ROOT
+# Install libbpf and bpftool from the linux tree
+cd ${LINUX_SRC}/tools/lib/bpf
+make -j$(nproc) install
+cd -
 
-# Build and install bpftool
-export BPFTOOL_ROOT=$(mktemp -d bpftool.XXXX)
-git clone --recurse-submodules https://github.com/libbpf/bpftool.git $BPFTOOL_ROOT
-pushd $BPFTOOL_ROOT
-git reset --hard $BPFTOOL_REVISION
-git submodule update --init
-make LLVM=1 LLVM_VERSION=-${LLVM_VERSION} -C src -j$(nproc)
-make LLVM=1 LLVM_VERSION=-${LLVM_VERSION} -C src install
-popd
-rm -rf $BPFTOOL_ROOT
+cd ${LINUX_SRC}/tools/bpf/bpftool
+make -j$(nproc) install
+cd -
+
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y

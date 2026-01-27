@@ -2,18 +2,27 @@
 
 set -xeuo pipefail
 
-SCRIPT_DIR=$(dirname "$(realpath "$0")")
-
+export LINUX_REPO=${LINUX_REPO:-https://github.com/kernel-patches/bpf.git}
+export LINUX_REVISION=${LINUX_REVISION:-bpf-next}
 export LLVM_VERSION=${LLVM_VERSION:-21}
 export SCX_REVISION=${SCX_REVISION:-main}
-export SCX_BUILD_OUTPUT=${SCX_BUILD_OUTPUT:-${SCRIPT_DIR}/output}
+
+if [ -z "${1:-}" ]; then
+  echo "Usage: $0 <output_dir>"
+  exit 1
+fi
+export SCX_BUILD_OUTPUT=${1}
+
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
 
 mkdir -p "${SCX_BUILD_OUTPUT}"
 
 docker build \
+  --build-arg LINUX_REPO="${LINUX_REPO}" \
+  --build-arg LINUX_REVISION="${LINUX_REVISION}" \
   --build-arg LLVM_VERSION="${LLVM_VERSION}" \
-  -t scx-builder:local \
   -f "${SCRIPT_DIR}/Dockerfile" \
+  -t scx-builder:local \
   "${SCRIPT_DIR}"
 
 docker run --rm \
@@ -23,5 +32,3 @@ docker run --rm \
   -e SCX_REVISION="${SCX_REVISION}" \
   --entrypoint /scripts/build-scheds.sh \
   scx-builder:local
-
-sudo chown -R "$(id -u):$(id -g)" "${SCX_BUILD_OUTPUT}"
