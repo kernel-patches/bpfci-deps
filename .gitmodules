@@ -1,0 +1,28 @@
+[submodule "deps/kernel-patches/vmtest"]
+	path = deps/kernel-patches/vmtest
+	url = https://github.com/kernel-patches/vmtest.git
+	branch = master
+[submodule "deps/kernel-patches/runner"]
+	path = deps/kernel-patches/runner
+	url = https://github.com/kernel-patches/runner.git
+	branch = main
+[submodule "deps/kernel-patches/kernel-patches-daemon"]
+	path = deps/kernel-patches/kernel-patches-daemon
+	url = https://github.com/kernel-patches/kernel-patches-daemon.git
+	branch = main
+[submodule "deps/libbpf/ci"]
+	path = deps/libbpf/ci
+	url = https://github.com/libbpf/ci.git
+	branch = main
+[submodule "deps/danobi/vmtest"]
+	path = deps/danobi/vmtest
+	url = https://github.com/danobi/vmtest.git
+	branch = master
+[submodule "deps/facebookexperimental/semcode"]
+	path = deps/facebookexperimental/semcode
+	url = https://github.com/facebookexperimental/semcode.git
+	branch = main
+[submodule "deps/masoncl/review-prompts"]
+	path = deps/masoncl/review-prompts
+	url = https://github.com/masoncl/review-prompts.git
+	branch = main
